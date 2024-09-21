@@ -56,10 +56,10 @@ function checkAuthCookie(req, res, next) {
 function authenticateToken(req, res, next) {
   const token = req.cookies.token; // Get token from cookies
 
-  if (!token) return res.redirect('/index'); // Redirect to index if token is missing
+  if (!token) return res.redirect('index'); // Redirect to index if token is missing
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.redirect('/index'); // Redirect to index if token is invalid
+    if (err) return res.redirect('index'); // Redirect to index if token is invalid
     req.user = user;
     next();
   });
@@ -67,7 +67,7 @@ function authenticateToken(req, res, next) {
 
 // Root Route
 app.get('/', checkAuthCookie, (req, res) => {
-  res.render('/index'); // Render the index page
+  res.render('index'); // Render the index page
 });
 
 // Dashboard Route
