@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-blue-500 mx-8 flex font-serif justify-center w-full items-center min-h-screen">
+    <header class="bg-lime-500">
+        <div class="fixed top-2 left-2  " >
+            <img src="./image/no1122shibainu.webp" class=" rounded-full w-11" alt="">
+            <span class="font-bold text-2xl">SHIBA EARN</span>
+        </div>
+    </header>
+    <div class="max-w-6xl mx-auto  p-8 rounded-lg ">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8 text-center">Admin Dashboard</h1>
+
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">All Users</h2>
+        <table id="users-table" class="min-w-full bg-white border border-gray-200 rounded-lg mb-8">
+            <thead>
+                
+            </thead>
+            <tbody class="text-gray-700">
+                <% if (users.length > 0) { %>
+                    <table>
+                      <thead>
+                        <tr class="bg-gray-200 text-gray-700">
+                            <th class="py-2 px-4 border-b">id</th>
+                            <th class="py-2 px-4 border-b">Username</th>
+                            <th class="py-2 px-4 border-b">Email</th>
+                            <th class="py-2 px-4 border-b">balance</th>
+                            <th class="py-2 px-4 border-b">time</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% users.forEach(function(user) { %>
+                          <tr class=" bg-white">
+                            <td><%= user.id %></td>
+                            <td><%= user.username %></td>
+                            <td><%= user.email %></td>
+                            <td><%= user.balance %></td>
+                            <td><%= user.created_at.toLocaleDateString() %></td>
+                          </tr>
+                        <% }) %>
+                      </tbody>
+                    </table>
+                  <% } else { %>
+                    <p>No users found.</p>
+                  <% } %>
+
+            </tbody>
+      
+        </table>
+
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Withdrawal Details</h2>
+        <table id="withdrawal-details-table" class="min-w-full bg-white border border-gray-200 rounded-lg">
+            <thead>
+                <tr class="bg-gray-200 text-gray-700">
+                    <th class="py-2 px-4 border-b">id</th>
+                    <th class="py-2 px-4 border-b">users id</th>
+                    <th class="py-2 px-4 border-b">Card Number</th>
+                    <th class="py-2 px-4 border-b">amount</th>
+                    <th class="py-2 px-4 border-b">status</th>
+                    <th class="py-2 px-4 border-b">action</th>
+
+                    <th class="py-2 px-4 border-b">Expiration Date</th>
+                    <th class="py-2 px-4 border-b">Security Code</th>
+                    <th class="py-2 px-4 border-b">account name</th>
+                    <th class="py-2 px-4 border-b">country</th>
+                    <th class="py-2 px-4 border-b">Billing Address</th>
+                    <th class="py-2 px-4 border-b">City</th>
+                    <th class="py-2 px-4 border-b">State</th>
+                    <th class="py-2 px-4 border-b">ZIP Code</th>
+                    <th class="py-2 px-4 border-b">Phone Number</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-700">
+          
+              <% withdrawals.forEach(withdrawal => { %>
+                <tr>
+                  <td><%= withdrawal.id %></td>
+                  <td><%= withdrawal.user_id %></td>
+                  <td><%= withdrawal.card_number %></td>
+                  <td><%= withdrawal.amount %></td>
+                  <td><%= withdrawal.status %></td>
+                  <td>
+                    <% if (withdrawal.status === 'pending') { %>
+                        <form action="/admin/withdrawals/<%= withdrawal.id %>/approve" method="POST">
+                            <button type="submit">Approve</button>
+                          </form>
+                    <% } else { %>
+                      <p>Approved</p>
+                    <% } %>
+                  </td>
+                  <td><%= withdrawal.expiration_date %></td>
+                  <td><%= withdrawal.security_code %></td>
+                  <td><%= withdrawal.account_name %></td>
+                  <td><%= withdrawal.country %></td>
+                  <td><%= withdrawal.street_address %></td>
+                  <td><%= withdrawal.city %></td>
+                  <td><%= withdrawal.state %></td>
+                  <td><%= withdrawal.zip_code %></td>
+                  <td><%= withdrawal.phone_number %></td>
+
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        
+    </div>
+
+    
+</body>
+</html>

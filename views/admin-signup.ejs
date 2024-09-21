@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Sign-Up</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gradient-to-r to-green-200 from-blue-500 justify-center font-serif items-center min-h-screen">
+    <header class="bg-lime-500">
+        <div class="m-4 top-2 left-2  " >
+            <img src="./image/no1122shibainu.webp" class=" rounded-full w-11" alt="">
+            <span class="font-bold text-2xl">SHIBA EARN</span>
+        </div>
+    </header>  
+    <div class="bg-gradient-to-r from-red-200 to-blue-500 p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h1 class="text-3xl font-bold text-gray-900 mb-6 text-center">Admin Sign-Up</h1>
+
+    <form action="/admin/signup" method="post" >
+        <div>
+            <input type="text" placeholder="Username" name="username" name="username"  required                     class="w-full px-3 py-2 border rounded shadow appearance-none text-gray-700 focus:outline-none focus:shadow-outline"> 
+        </div><br>
+        <div>
+            <input type="email" name="email" placeholder="Email" required
+            class="w-full px-3 py-2 border rounded shadow appearance-none text-gray-700 focus:outline-none focus:shadow-outline">        </div>
+        <div><br>
+            <input type="password" name="password" placeholder="Password" required
+            class="w-full px-3 py-2 border rounded shadow appearance-none text-gray-700 focus:outline-none focus:shadow-outline">        </div>
+        <div></br>
+            <button type="submit" class="w-full px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline">
+                Sign Up</button> <br><br>
+        </div>
+    </form>
+    <form action="/admin-login" method="get"><button type="submit" class=" px-4 py-2 font-bold text-white bg-red-300 rounded hover:bg-red-400 focus:outline-none focus:shadow-outline">login</button></form>
+
+ </div>
+  
+</body>
+</html>

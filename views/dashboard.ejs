@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+</head>
+<body class="bg-gradient-to-r from-gray-900 to-gray-800 text-gray-300 min-h-screen md:flex">
+    
+    <!-- Sidebar -->
+    <aside class="md:w-64 bg-gray-900 text-white h-full p-6">
+        <div class="mb-8">
+            <img src="./image/no1122shibainu.webp" class="rounded-full w-16 mx-auto" alt="User Avatar">
+            <h2 class="text-center font-bold text-2xl mt-4">SHIBA EARN</h2>
+        </div>
+        <div class="relative">
+          <!--<img id="bb" src="./image/download (2).jpg" alt="translator" class="w-8 h-8 rounded-full mb-4 cursor-pointer">-->
+          <div id="google_translate_element" class="hidden"></div>
+      </div>
+        <nav>
+            <ul>
+                <li class="mb-4">
+                    <a href="#ad" class="block py-2 px-4 rounded bg-gray-700 hover:bg-gray-600">Dashboard</a>
+                </li>
+                <li class="mb-4">
+                    <a href="#ad" class="block py-2 px-4 rounded hover:bg-gray-600">Account Details</a>
+                </li>
+                <li class="mb-4">
+                    <a href="#rp" class="block py-2 px-4 rounded hover:bg-gray-600">Referral Program</a>
+                </li>
+                <li class="mb-4">
+                    <a href="#wh" class="block py-2 px-4 rounded hover:bg-gray-600">Withdrawals</a>
+                </li>
+                
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main content -->
+    <div class="flex-grow p-8">
+        <!-- Header -->
+        <header id="ad" class="flex justify-between items-center mb-6">
+            <div class="text-white text-2xl font-bold">Dashboard</div>
+            
+        </header>
+        <style>
+            @keyframes pulse {
+                0%, 100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+            .animate-pulse {
+                animation: pulse 1.5s infinite;
+            }
+        </style>
+        <!-- Account Details -->
+        <section class="bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+            <h2 class="text-3xl font-bold text-white mb-4">Welcome, <%= username %></h2>
+            <p class="text-xl text-gray-300"><strong>Balance:</strong> $<%= balance %></p>
+
+            <!-- Daily Claim Section -->
+            <% if (hoursUntilNextClaim > 0 || minutesUntilNextClaim > 0) { %>
+                <p id="countdown" class="mt-4">You can claim your next daily reward in <%= hoursUntilNextClaim %> hours and <%= minutesUntilNextClaim %> minutes.</p>
+                <script>
+                    let remainingTimeInSeconds = (<%= hoursUntilNextClaim %> * 3600) + (<%= minutesUntilNextClaim %> * 60);
+                    
+                    function updateCountdown() {
+                        if (remainingTimeInSeconds <= 0) {
+                            document.getElementById('countdown').innerText = 'You can claim your daily reward now!';
+                            return;
+                        }
+                        
+                        const hours = Math.floor(remainingTimeInSeconds / 3600);
+                        const minutes = Math.floor((remainingTimeInSeconds % 3600) / 60);
+                        const seconds = remainingTimeInSeconds % 60;
+                
+                        document.getElementById('countdown').innerText = `You can claim your next daily Airdrop in: ${hours}h ${minutes}m ${seconds}s`;
+                        remainingTimeInSeconds--;
+                
+                        setTimeout(updateCountdown, 1000);
+                    }
+                
+                    updateCountdown();
+                </script>
+                
+            <% } else { %>
+                <form action="/claim-daily-reward" method="POST" class="mt-4">
+                    <button type="submit" class="w-full animate-pulse bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">
+                        Claim Your Airdrop $500
+                    </button>
+                </form>
+            <% } %>
+        </section>
+
+        <!-- Referral Link -->
+        <section id="rp" class="bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+            <h3 class="text-xl font-bold text-white mb-4">Your Referral Link</h3>
+            <input type="text" id="referralLink" value="http://yourwebsite.com/signup?referral_code=<%= referral_code %>" readonly class="w-full p-2 border border-gray-600 rounded bg-gray-900 text-gray-400">
+            <button onclick="copyReferralLink()" class="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
+                Copy Referral Link
+            </button>
+            <button id="shareLinkButton" class="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
+                Share Referral Link
+            </button>
+        </section>
+
+        <!-- Withdrawal History -->
+        <section id="wh" class="bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+            <h3 class="text-xl font-bold text-white mb-4">Withdrawal History</h3>
+            <% if (withdrawals.length > 0) { %>
+                <table class="min-w-full bg-gray-900 rounded">
+                    <thead>
+                        <tr class="text-left bg-gray-700">
+                            <th class="px-4 py-2">Date</th>
+                            <th class="px-4 py-2">Amount</th>
+                            <th class="px-4 py-2">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% withdrawals.forEach(withdrawal => { %>
+                            <tr>
+                                <td class="px-4 py-2 border-b border-gray-700"><%= new Date(withdrawal.date).toLocaleDateString() %></td>
+                                <td class="px-4 py-2 border-b border-gray-700">$<%= withdrawal.amount %></td>
+                                <td class="px-4 py-2 border-b border-gray-700"><%= withdrawal.status %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <p class="text-gray-400">You have no withdrawal history.</p>
+            <% } %>
+            <form action="/withdraw" method="get" class="mt-4">
+                <button type="submit" class="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700">
+                    Withdraw Your Balance
+                </button>
+            </form>
+        </section>
+
+        <!-- Logout Button -->
+        <form action="/logout" method="post">
+            <button type="submit" class="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700">
+                Logout
+            </button>
+        </form>
+
+        <p class="text-center text-gray-500 text-xs mt-6">
+            &copy;2024 Grace Tech. All rights reserved.
+        </p>
+    </div>
+
+    <script>
+        function copyReferralLink() {
+            const referralLink = document.getElementById("referralLink");
+            referralLink.select();
+            referralLink.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(referralLink.value);
+            alert("Referral link copied: " + referralLink.value);
+        }
+
+        document.getElementById('shareLinkButton').addEventListener('click', async () => {
+            const referralLink = document.getElementById("referralLink").value;
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Join and earn rewards!',
+                        text: 'Sign up using my referral link and earn a bonus!',
+                        url: referralLink,
+                    });
+                    console.log('Referral link shared successfully!');
+                } catch (error) {
+                    console.error('Error sharing the referral link:', error);
+                }
+            } else {
+                console.log('Web Share API is not supported in this browser.');
+            }
+        });
+
+        $("#bb").click(function(){
+            $("#google_translate_element").toggle();
+        });
+    </script>
+    <script type="text/javascript">
+      // Function to initialize Google Translate
+      function googleTranslateElementInit() {
+          new google.translate.TranslateElement({
+              pageLanguage: 'en', // Default language
+              includedLanguages: 'en,fr,es,de,zh,ar,hi,pt,ru,ja,ko,it,nl', // Add more languages
+              layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+              autoDisplay: false // Prevents auto-display of the Google Translate bar
+          }, 'google_translate_element');
+      }
+    
+      // Fetch user location using ipinfo.io with your token
+      fetch('https://ipinfo.io?token=83999d9e50a879')
+          .then(response => response.json())
+          .then(data => {
+              const userCountry = data.country; // Get user country code
+              let language = 'en'; // Default language
+    
+              // Map country codes to languages
+              if (userCountry === 'FR') language = 'fr';  // France -> French
+              if (userCountry === 'ES') language = 'es';  // Spain -> Spanish
+              if (userCountry === 'DE') language = 'de';  // Germany -> German
+              if (userCountry === 'CN') language = 'zh';  // China -> Chinese
+              if (userCountry === 'AR') language = 'ar';  // Arabic-speaking countries
+              if (userCountry === 'IN') language = 'hi';  // India -> Hindi
+              if (userCountry === 'BR') language = 'pt';  // Brazil -> Portuguese
+              if (userCountry === 'RU') language = 'ru';  // Russia -> Russian
+              if (userCountry === 'JP') language = 'ja';  // Japan -> Japanese
+              if (userCountry === 'KR') language = 'ko';  // Korea -> Korean
+              if (userCountry === 'IT') language = 'it';  // Italy -> Italian
+              if (userCountry === 'NL') language = 'nl';  // Netherlands -> Dutch
+    
+              // After detecting the location, load the Google Translate API
+              const script = document.createElement('script');
+              script.type = 'text/javascript';
+              script.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+              document.head.appendChild(script);
+    
+              // After the Google Translate widget is initialized, auto-select the language
+              script.onload = function() {
+                  setTimeout(function() {
+                      const googleTranslateFrame = document.querySelector('.goog-te-combo');
+                      if (googleTranslateFrame) {
+                          googleTranslateFrame.value = language; // Set the detected language
+                          googleTranslateFrame.dispatchEvent(new Event('change')); // Trigger the language change
+                      }
+                  }, 500); // Delay to ensure the widget is loaded
+              };
+          })
+          .catch(error => {
+              console.error("Geolocation error:", error);
+          });
+    </script>
+    
+</body>
+</html>
