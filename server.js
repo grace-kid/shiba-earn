@@ -333,8 +333,8 @@ app.post('/withdraw', authenticateToken, async (req, res) => {
     const [user] = await db.promise().query('SELECT balance FROM users WHERE id = ?', [req.user.userId]);
 
     // Insert the withdrawal request into the withdrawals table
-    await db.promise().query('INSERT INTO withdrawals (user_id, card_number, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number, amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', 
-      [req.user.userId, card_number, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number, amount]);
+    await db.promise().query('INSERT INTO withdrawals (user_id, card_number, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', 
+      [req.user.userId, card_number, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number]);
 
     // Update the user's balance
     await db.promise().query('UPDATE users SET balance = balance - ? WHERE id = ?', [amount, req.user.userId]);
