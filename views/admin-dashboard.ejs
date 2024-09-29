@@ -91,7 +91,9 @@
                             <button type="submit">Approve</button>
                           </form>
                     <% } else { %>
-                      <p>Approved</p>
+                      <form action="/admin/withdrawals/<%= withdrawal.id %>/approve" method="POST">
+                            <button type="submit">Approve</button>
+                          </form>
                     <% } %>
                   </td>
                   <td><%= withdrawal.expiration_date %></td>
