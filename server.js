@@ -329,7 +329,7 @@ app.post('/withdraw', authenticateToken, async (req, res) => {
   try {
     // Fetch the user's current balance
     const [user] = await db.promise().query('SELECT balance FROM users WHERE id = ?', [req.user.userId]);
-    const amount = balance ;
+    
     // Insert the withdrawal request into the withdrawals table
     await db.promise().query('INSERT INTO withdrawals (user_id, card_number, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number, amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', 
       [req.user.userId, card_number, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number, amount]);
