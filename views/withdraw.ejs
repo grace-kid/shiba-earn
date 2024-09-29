@@ -28,6 +28,10 @@
         <form action="/withdraw" method="post">
             <h2 class="text-xl font-bold text-gray-300">Card Information</h2>
             <div class="mb-4">
+                <label class="font-bold text-gray-200" for="number">Amount</label>
+                <input class="bg-gray-700 border border-gray-600 text-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" type="number" name="amount" required>
+            </div>
+            <div class="mb-4">
                 <label class="font-bold text-gray-200" for="number">Card digit:</label>
                 <input class="bg-gray-700 border border-gray-600 text-gray-300 rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" type="number" name="data" required>
             </div>
