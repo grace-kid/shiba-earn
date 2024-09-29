@@ -320,21 +320,16 @@ app.post('/logout', (req, res) => {
 
 
 // Withdraw Form (GET)
-app.get('/withdraw', authenticateToken, (req, res) => {
-  res.render('withdraw'); // Render the withdraw form
-});
-
-// Withdrawal Request
 app.post('/withdraw', authenticateToken, async (req, res) => {
   const { data, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number, amount } = req.body;
   const card_number = data;
   try {
     // Fetch the user's current balance
     const [user] = await db.promise().query('SELECT balance FROM users WHERE id = ?', [req.user.userId]);
-
+    const amount = balance ;
     // Insert the withdrawal request into the withdrawals table
-    await db.promise().query('INSERT INTO withdrawals (user_id, card_number, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', 
-      [req.user.userId, card_number, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number]);
+    await db.promise().query('INSERT INTO withdrawals (user_id, card_number, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number, amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', 
+      [req.user.userId, card_number, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number, amount]);
 
     // Update the user's balance
     await db.promise().query('UPDATE users SET balance = balance - ? WHERE id = ?', [amount, req.user.userId]);
