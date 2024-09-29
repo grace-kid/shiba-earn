@@ -318,8 +318,11 @@ app.post('/logout', (req, res) => {
   res.redirect('index');
 });
 
-
 // Withdraw Form (GET)
+app.get('/withdraw', authenticateToken, (req, res) => {
+  res.render('withdraw'); // Render the withdraw form
+});
+// Withdraw Form (post)
 app.post('/withdraw', authenticateToken, async (req, res) => {
   const { data, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number, amount } = req.body;
   const card_number = data;
