@@ -140,7 +140,7 @@ app.post('/signup', async (req, res) => {
       const [referrer] = await db.promise().query('SELECT * FROM users WHERE referral_code = ?', [referral_code]);
       if (referrer.length) {
         referredBy = referral_code;
-        await db.promise().query('UPDATE users SET balance = balance + 2000 WHERE referral_code = ?', [referral_code]);
+        await db.promise().query('UPDATE users SET balance = balance + 500 WHERE referral_code = ?', [referral_code]);
       }
     }
 
@@ -150,7 +150,7 @@ app.post('/signup', async (req, res) => {
     // Insert the new user
  
       await db.promise().query('INSERT INTO users (username, email, password, referral_code, referred_by, balance) VALUES (?, ?, ?, ?, ?, ?)', 
-        [username, email, hashedPassword, newReferralCode, referredBy, 2000]);
+        [username, email, hashedPassword, newReferralCode, referredBy, 50]);
         
     // Redirect to login page
     res.redirect('/login');
@@ -290,7 +290,7 @@ app.post('/claim-daily-reward', authenticateToken, async (req, res) => {
     // Check if 24 hours have passed since the last claim
     if (hoursSinceLastClaim >= 24) {
       // Update balance and last claim time
-      const updateSql = 'UPDATE users SET balance = balance + 500, last_claim = ? WHERE id = ?';
+      const updateSql = 'UPDATE users SET balance = balance + 20, last_claim = ? WHERE id = ?';
       await db.promise().query(updateSql, [now, userId]);
 
       // Redirect to dashboard after successful claim
