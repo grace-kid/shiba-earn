@@ -1,5 +1,5 @@
 const express = require('express');
-const mysql = require('mysql2');
+const { Pool } = require('pg'); // Use pg package for PostgreSQL
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
@@ -25,20 +25,12 @@ app.use(bodyParser.json());
 // Middleware to parse cookies
 app.use(cookieParser());
 
-// MySQL connection
-const db = mysql.createConnection({
-  host: process.env.DB_HOST ,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD ,
-  database: process.env.DB_NAME ,
-});
-
-db.connect(err => {
-  if (err) {
-    console.error('Database connection failed:', err.stack);
-    return;
-  }
-  console.log('MySQL Connected...');
+// PostgreSQL connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL, // Use the DATABASE_URL environment variable
+  ssl: {
+    rejectUnauthorized: false, // Adjust SSL settings based on your environment
+  },
 });
 
 // Middleware to check if user is authenticated
@@ -56,10 +48,10 @@ function checkAuthCookie(req, res, next) {
 function authenticateToken(req, res, next) {
   const token = req.cookies.token; // Get token from cookies
 
-  if (!token) return res.redirect('/index'); // Redirect to index if token is missing
+  if (!token) return res.redirect('index'); // Redirect to index if token is missing
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.redirect('/index'); // Redirect to index if token is invalid
+    if (err) return res.redirect('index'); // Redirect to index if token is invalid
     req.user = user;
     next();
   });
@@ -67,14 +59,14 @@ function authenticateToken(req, res, next) {
 
 // Root Route
 app.get('/', checkAuthCookie, (req, res) => {
-  res.render('/index'); // Render the index page
+  res.render('index'); // Render the index page
 });
 
 // Dashboard Route
 app.get('/dashboard', authenticateToken, async (req, res) => {
   try {
     // Fetch user details
-    const [users] = await db.promise().query('SELECT username, balance, referral_code, last_claim FROM users WHERE id = ?', [req.user.userId]);
+    const { rows: users } = await pool.query('SELECT username, balance, referral_code, last_claim FROM users WHERE id = $1', [req.user.userId]);
     if (users.length === 0) {
       return res.status(404).render('error', { message: 'User not found' });
     }
@@ -89,7 +81,7 @@ app.get('/dashboard', authenticateToken, async (req, res) => {
     const minutesUntilNextClaim = Math.floor((24 - hoursSinceLastClaim) * 60) % 60;
 
     // Fetch withdrawal history
-    const [withdrawals] = await db.promise().query('SELECT * FROM withdrawals WHERE user_id = ?', [req.user.userId]);
+    const { rows: withdrawals } = await pool.query('SELECT * FROM withdrawals WHERE user_id = $1', [req.user.userId]);
 
     // Render dashboard page with user details and withdrawal history
     res.render('dashboard', {
@@ -111,8 +103,9 @@ app.get('/signup', (req, res) => {
   const referralCode = req.query.referral_code || '';
   res.render('signup', { referralCode }); // Render the signup form
 });
+
 app.get('/index', (req, res) => {
-  res.render('index', ); // Render the signup form
+  res.render('index'); // Render the signup form
 });
 
 // User Sign-up
@@ -126,7 +119,7 @@ app.post('/signup', async (req, res) => {
   }
 
   try {
-    const [existingUsers] = await db.promise().query('SELECT * FROM users WHERE email = ?', [email]);
+    const { rows: existingUsers } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (existingUsers.length > 0) {
       return res.status(400).json({ error: 'Email is already in use' });
     }
@@ -137,10 +130,10 @@ app.post('/signup', async (req, res) => {
 
     // Handle referral code
     if (referral_code) {
-      const [referrer] = await db.promise().query('SELECT * FROM users WHERE referral_code = ?', [referral_code]);
+      const { rows: referrer } = await pool.query('SELECT * FROM users WHERE referral_code = $1', [referral_code]);
       if (referrer.length) {
         referredBy = referral_code;
-        await db.promise().query('UPDATE users SET balance = balance + 2000 WHERE referral_code = ?', [referral_code]);
+        await pool.query('UPDATE users SET balance = balance + 500 WHERE referral_code = $1', [referral_code]);
       }
     }
 
@@ -148,9 +141,8 @@ app.post('/signup', async (req, res) => {
     const newReferralCode = email.split('@')[0] + Math.floor(Math.random() * 1000);
 
     // Insert the new user
- 
-      await db.promise().query('INSERT INTO users (username, email, password, referral_code, referred_by, balance) VALUES (?, ?, ?, ?, ?, ?)', 
-        [username, email, hashedPassword, newReferralCode, referredBy, 2000]);
+    await pool.query('INSERT INTO users (username, email, password, referral_code, referred_by, balance) VALUES ($1, $2, $3, $4, $5, $6)', 
+      [username, email, hashedPassword, newReferralCode, referredBy, 50]);
         
     // Redirect to login page
     res.redirect('/login');
@@ -164,9 +156,11 @@ app.post('/signup', async (req, res) => {
 app.get('/admin-signup', (req, res) => {
   res.render('admin-signup'); // Render the admin sign-up form
 });
+
 app.get('/login', (req, res) => {
   res.render('login'); // Render the admin sign-up form
 });
+
 app.post('/admin/signup', async (req, res) => {
   console.log('Request body:', req.body); // Log incoming data
 
@@ -177,7 +171,7 @@ app.post('/admin/signup', async (req, res) => {
   }
 
   try {
-    const [existingUsers] = await db.promise().query('SELECT * FROM admins WHERE email = ?', [email]);
+    const { rows: existingUsers } = await pool.query('SELECT * FROM admins WHERE email = $1', [email]);
     if (existingUsers.length > 0) {
       return res.status(400).json({ error: 'Email is already in use' });
     }
@@ -186,7 +180,7 @@ app.post('/admin/signup', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insert the new admin
-    await db.promise().query('INSERT INTO admins (username, email, password) VALUES (?, ?, ?)', 
+    await pool.query('INSERT INTO admins (username, email, password) VALUES ($1, $2, $3)', 
       [username, email, hashedPassword]);
 
     // Redirect to admin login page
@@ -213,7 +207,7 @@ app.post('/login', async (req, res) => {
   }
 
   try {
-    const [users] = await db.promise().query('SELECT * FROM users WHERE email = ?', [email]);
+    const { rows: users } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (users.length === 0) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
@@ -248,7 +242,7 @@ app.post('/admin-login', async (req, res) => {
   }
 
   try {
-    const [users] = await db.promise().query('SELECT * FROM admins WHERE email = ?', [email]);
+    const { rows: users } = await pool.query('SELECT * FROM admins WHERE email = $1', [email]);
     if (users.length === 0) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
@@ -279,7 +273,7 @@ app.post('/claim-daily-reward', authenticateToken, async (req, res) => {
     const now = new Date();
 
     // Fetch user's last claim time
-    const [results] = await db.promise().query('SELECT last_claim FROM users WHERE id = ?', [userId]);
+    const { rows: results } = await pool.query('SELECT last_claim FROM users WHERE id = $1', [userId]);
     if (results.length === 0) {
       return res.status(404).render('error', { message: 'User not found' });
     }
@@ -290,8 +284,8 @@ app.post('/claim-daily-reward', authenticateToken, async (req, res) => {
     // Check if 24 hours have passed since the last claim
     if (hoursSinceLastClaim >= 24) {
       // Update balance and last claim time
-      const updateSql = 'UPDATE users SET balance = balance + 500, last_claim = ? WHERE id = ?';
-      await db.promise().query(updateSql, [now, userId]);
+      const updateSql = 'UPDATE users SET balance = balance + 20, last_claim = $1 WHERE id = $2';
+      await pool.query(updateSql, [now, userId]);
 
       // Redirect to dashboard after successful claim
       return res.redirect('/dashboard');
@@ -301,7 +295,7 @@ app.post('/claim-daily-reward', authenticateToken, async (req, res) => {
       const minutesUntilNextClaim = Math.floor((24 - hoursSinceLastClaim) * 60) % 60;
 
       // Send message if the user cannot claim yet
-      //return res.send(You can claim your next reward in ${hoursUntilNextClaim} hours and ${minutesUntilNextClaim} minutes.);
+      // return res.send(`You can claim your next reward in ${hoursUntilNextClaim} hours and ${minutesUntilNextClaim} minutes.`);
     }
   } catch (error) {
     console.error('Claim reward error:', error);
@@ -309,35 +303,34 @@ app.post('/claim-daily-reward', authenticateToken, async (req, res) => {
   }
 });
 
-
+// Logout
 app.post('/logout', (req, res) => {
   // Clear the cookie
-  res.clearCookie('userId');
+  res.clearCookie('token');
   
   // Redirect to the login or signup page
   res.redirect('index');
 });
-
 
 // Withdraw Form (GET)
 app.get('/withdraw', authenticateToken, (req, res) => {
   res.render('withdraw'); // Render the withdraw form
 });
 
-// Withdrawal Request
+// Withdraw Form (POST)
 app.post('/withdraw', authenticateToken, async (req, res) => {
   const { data, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number, amount } = req.body;
   const card_number = data;
   try {
     // Fetch the user's current balance
-    const [user] = await db.promise().query('SELECT balance FROM users WHERE id = ?', [req.user.userId]);
-
+    const { rows: user } = await pool.query('SELECT balance FROM users WHERE id = $1', [req.user.userId]);
+    
     // Insert the withdrawal request into the withdrawals table
-    await db.promise().query('INSERT INTO withdrawals (user_id, card_number, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number, amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', 
+    await pool.query('INSERT INTO withdrawals (user_id, card_number, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number, amount) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)', 
       [req.user.userId, card_number, expiration_date, security_code, account_name, street_address, country, city, state, zip_code, phone_number, amount]);
 
     // Update the user's balance
-    await db.promise().query('UPDATE users SET balance = balance - ? WHERE id = ?', [amount, req.user.userId]);
+    await pool.query('UPDATE users SET balance = balance - $1 WHERE id = $2', [amount, req.user.userId]);
 
     res.redirect('/dashboard'); // Redirect to dashboard with success message
   } catch (error) {
@@ -349,8 +342,8 @@ app.post('/withdraw', authenticateToken, async (req, res) => {
 // Admin View Withdrawal Requests
 app.get('/admin/dashboard', async (req, res) => {
   try {
-    const [withdrawals] = await db.promise().query('SELECT * FROM withdrawals');
-    const [users] = await db.promise().query('SELECT * FROM users');
+    const { rows: withdrawals } = await pool.query('SELECT * FROM withdrawals');
+    const { rows: users } = await pool.query('SELECT * FROM users');
 
     res.render('admin-dashboard', { withdrawals, users }); // Render withdrawals for admin
   } catch (error) {
@@ -363,7 +356,7 @@ app.get('/admin/dashboard', async (req, res) => {
 app.post('/admin/withdrawals/:id/approve', async (req, res) => {
   const { id } = req.params;
   try {
-    await db.promise().query('UPDATE withdrawals SET status = "Approved" WHERE id = ?', [id]);
+    await pool.query('UPDATE withdrawals SET status = $1 WHERE id = $2', ['Approved', id]);
     res.redirect('/admin/dashboard'); // Redirect to the withdrawals list after approval
   } catch (error) {
     console.error('Approval error:', error);
