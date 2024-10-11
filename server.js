@@ -104,6 +104,10 @@ app.get('/signup', (req, res) => {
   res.render('signup', { referralCode }); // Render the signup form
 });
 
+app.get('/index', (req, res) => {
+  res.render('index'); // Render the signup form
+});
+
 // User Sign-up
 app.post('/signup', async (req, res) => {
   console.log('Request body:', req.body); // Log incoming data
@@ -157,6 +161,41 @@ app.get('/login', (req, res) => {
   res.render('login'); // Render the admin sign-up form
 });
 
+app.post('/admin/signup', async (req, res) => {
+  console.log('Request body:', req.body); // Log incoming data
+
+  const { username, email, password } = req.body;
+
+  if (!username || !email || !password) {
+    return res.status(400).json({ error: 'Name, email, and password are required' });
+  }
+
+  try {
+    const { rows: existingUsers } = await pool.query('SELECT * FROM admins WHERE email = $1', [email]);
+    if (existingUsers.length > 0) {
+      return res.status(400).json({ error: 'Email is already in use' });
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert the new admin
+    await pool.query('INSERT INTO admins (username, email, password) VALUES ($1, $2, $3)', 
+      [username, email, hashedPassword]);
+
+    // Redirect to admin login page
+    res.redirect('/admin-login');
+  } catch (error) {
+    console.error('Sign-up error:', error);
+    res.status(500).json({ error: 'Error during sign-up' });
+  }
+});
+
+// Admin Login Page (GET)
+app.get('/admin-login', (req, res) => {
+  res.render('admin-login'); // Render the admin login form
+});
+
 // User Login
 app.post('/login', async (req, res) => {
   console.log('Request body:', req.body); // Log incoming data
@@ -189,6 +228,78 @@ app.post('/login', async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Error during login' });
+  }
+});
+
+// Admin Login
+app.post('/admin-login', async (req, res) => {
+  console.log('Request body:', req.body); // Log incoming data
+
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  try {
+    const { rows: users } = await pool.query('SELECT * FROM admins WHERE email = $1', [email]);
+    if (users.length === 0) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const user = users[0];
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (isPasswordValid) {
+      const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+
+      // Store the token in an HTTP-only cookie
+      res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+
+      // Redirect to the admin dashboard
+      return res.redirect('/admin/dashboard');
+    } else {
+      res.status(401).json({ error: 'Invalid email or password' });
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Error during login' });
+  }
+});
+
+// Claim daily reward
+app.post('/claim-daily-reward', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const now = new Date();
+
+    // Fetch user's last claim time
+    const { rows: results } = await pool.query('SELECT last_claim FROM users WHERE id = $1', [userId]);
+    if (results.length === 0) {
+      return res.status(404).render('error', { message: 'User not found' });
+    }
+
+    const lastClaim = new Date(results[0].last_claim);
+    const hoursSinceLastClaim = (now - lastClaim) / 36e5;
+
+    // Check if 24 hours have passed since the last claim
+    if (hoursSinceLastClaim >= 24) {
+      // Update balance and last claim time
+      const updateSql = 'UPDATE users SET balance = balance + 20, last_claim = $1 WHERE id = $2';
+      await pool.query(updateSql, [now, userId]);
+
+      // Redirect to dashboard after successful claim
+      return res.redirect('/dashboard');
+    } else {
+      // Calculate time remaining for the next claim
+      const hoursUntilNextClaim = 24 - Math.floor(hoursSinceLastClaim);
+      const minutesUntilNextClaim = Math.floor((24 - hoursSinceLastClaim) * 60) % 60;
+
+      // Send message if the user cannot claim yet
+      // return res.send(`You can claim your next reward in ${hoursUntilNextClaim} hours and ${minutesUntilNextClaim} minutes.`);
+    }
+  } catch (error) {
+    console.error('Claim reward error:', error);
+    res.status(500).render('error', { message: 'Error processing daily reward claim' });
   }
 });
 
